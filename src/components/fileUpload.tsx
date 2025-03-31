@@ -8,78 +8,66 @@ import logo from '../assets/473784450_963220275277928_6665052720062980500_n.png'
 const FileUpload = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isRedirected, setIsRedirected] = useState<boolean>(false);
-  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (window.location.search.includes('authenticated=true')) {
-      checkAuthentication();
-    } else {
-      if (!isRedirected) {
-        setIsRedirected(true); 
-        window.location.href = 'https://fileuploaderbackend.onrender.com/auth/google'; 
-      }
+        return; 
     }
-  }, [isRedirected]);
 
-  const checkAuthentication = async () => {
-    try {
-      const response = await fetch('https://fileuploaderbackend.onrender.com/api/checkAuth', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.authenticated) {
-          setToken(data.token); 
+    if (isRedirected) return;
+    
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get('https://fileuploaderbackend.onrender.com/api/auth/status');
+        if (response.data.message === 'Not authenticated') {
+          setIsRedirected(true);
+          window.location.href = 'https://fileuploaderbackend.onrender.com/auth/google'; 
         }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
       }
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-    }
-  };
+    };
+    checkAuth();
+  }, [isRedirected]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFile(e.target.files[0]);
     }
   };
-
+  
   const handleFileUpload = async () => {
     if (!file) {
       alert('Please select a file to upload.');
       return;
     }
-
-    const accessToken = await getCookie('access_token');
-    if (!accessToken) {
-      alert(`You are not authenticated. Please log in. ${token} && ${accessToken}`);
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
+  
     try {
-      const response = await axios.post('https://fileuploaderbackend.onrender.com/api/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${accessToken}`, // Use the token directly in header
-        },
+      const response = await axios.get('https://fileuploaderbackend.onrender.com/checkAuth', { 
+        withCredentials: true 
       });
-      alert('File uploaded successfully');
-      console.log(response.data);
+  
+      if (response.data.authenticated) {
+        const formData = new FormData();
+        formData.append('file', file);
+  
+        const uploadResponse = await axios.post('https://fileuploaderbackend.onrender.com/api/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+        });
+  
+        alert('File uploaded successfully');
+        console.log(uploadResponse.data);
+      } else {
+        alert('You are not authenticated. Please log in.');
+      }
     } catch (error) {
-      console.error('Error uploading file:', error);
-      alert('Error uploading file.');
+      console.error('Error checking authentication:', error);
+      alert('Error during authentication or file upload.');
     }
   };
-
-  const getCookie = (name: string): string | undefined => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift();
-  };
+  
 
   return (
     <div className="container">
