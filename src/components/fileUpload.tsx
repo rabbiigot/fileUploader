@@ -51,8 +51,9 @@ const FileUpload = () => {
       return;
     }
 
-    if (!token) {
-      alert('You are not authenticated. Please log in.');
+    const accessToken = await getCookie('access_token');
+    if (!accessToken) {
+      alert(`You are not authenticated. Please log in. ${token}`);
       return;
     }
 
@@ -63,7 +64,7 @@ const FileUpload = () => {
       const response = await axios.post('https://fileuploaderbackend.onrender.com/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`, // Use the token directly in header
+          Authorization: `Bearer ${accessToken}`, // Use the token directly in header
         },
       });
       alert('File uploaded successfully');
@@ -72,6 +73,12 @@ const FileUpload = () => {
       console.error('Error uploading file:', error);
       alert('Error uploading file.');
     }
+  };
+
+  const getCookie = (name: string): string | undefined => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift();
   };
 
   return (
