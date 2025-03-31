@@ -12,9 +12,9 @@ const FileUpload = () => {
     // Check if the user is authenticated, or trigger Google login if not
     const checkAuth = async () => {
       try {
-        const response = await axios.get('http://localhost:7000/api/auth/status');
+        const response = await axios.get('https://fileuploaderbackend.onrender.com/api/auth/status');
         if (response.data.message === 'Not authenticated') {
-          window.location.href = 'http://localhost:7000/auth/google'; // Trigger Google OAuth flow
+          window.location.href = 'https://fileuploaderbackend.onrender.com/auth/google'; // Trigger Google OAuth flow
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
@@ -46,7 +46,7 @@ const FileUpload = () => {
     formData.append('file', file);
 
     try {
-      const response = await axios.post('http://localhost:7000/api/upload', formData, {
+      const response = await axios.post('https://fileuploaderbackend.onrender.com/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${accessToken}`, // Include token in header
