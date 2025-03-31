@@ -7,22 +7,28 @@ import logo from '../assets/473784450_963220275277928_6665052720062980500_n.png'
 
 const FileUpload = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [isRedirected, setIsRedirected] = useState<boolean>(false);
 
   useEffect(() => {
-    // Check if the user is authenticated, or trigger Google login if not
+    if (window.location.search.includes('authenticated=true')) {
+        return; 
+    }
+
+    if (isRedirected) return;
+    
     const checkAuth = async () => {
       try {
         const response = await axios.get('https://fileuploaderbackend.onrender.com/api/auth/status');
         if (response.data.message === 'Not authenticated') {
-          window.location.href = 'https://fileuploaderbackend.onrender.com/auth/google'; // Trigger Google OAuth flow
+          setIsRedirected(true);
+          window.location.href = 'https://fileuploaderbackend.onrender.com/auth/google'; 
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
       }
     };
-
     checkAuth();
-  }, []);
+  }, [isRedirected]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
