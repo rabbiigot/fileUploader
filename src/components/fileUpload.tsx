@@ -8,9 +8,13 @@ import logo from '../assets/473784450_963220275277928_6665052720062980500_n.png'
 const FileUpload = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isRedirected, setIsRedirected] = useState<boolean>(false);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (window.location.search.includes('authenticated=true')) {
+        const params = new URLSearchParams(window.location.search);
+        const tokenFromUrl = params.get('token');
+        setToken(tokenFromUrl);
         return; 
     }
 
@@ -41,30 +45,27 @@ const FileUpload = () => {
       alert('Please select a file to upload.');
       return;
     }
-  
+
+    if (!token) {
+      alert('You are not authenticated. Please log in.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
     try {
-      const response = await axios.get('https://fileuploaderbackend.onrender.com/checkAuth', { 
-        withCredentials: true 
+      const response = await axios.post('https://fileuploaderbackend.onrender.com/api/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`, 
+        },
       });
-  
-      if (response.data.authenticated) {
-        const formData = new FormData();
-        formData.append('file', file);
-  
-        const uploadResponse = await axios.post('https://fileuploaderbackend.onrender.com/api/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          },
-        });
-  
-        alert('File uploaded successfully');
-        console.log(uploadResponse.data);
-      } else {
-        alert('You are not authenticated. Please log in.');
-      }
+      alert('File uploaded successfully');
+      console.log(response.data);
     } catch (error) {
-      console.error('Error checking authentication:', error);
-      alert('Error during authentication or file upload.');
+      console.error('Error uploading file:', error);
+      alert('Error uploading file.');
     }
   };
   
