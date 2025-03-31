@@ -53,7 +53,7 @@ const FileUpload = () => {
 
     const accessToken = await getCookie('access_token');
     if (!accessToken) {
-      alert(`You are not authenticated. Please log in. ${token}`);
+      alert(`You are not authenticated. Please log in. ${token} && ${accessToken}`);
       return;
     }
 
