@@ -8,7 +8,6 @@ import logo from '../assets/473784450_963220275277928_6665052720062980500_n.png'
 const FileUpload = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isRedirected, setIsRedirected] = useState<boolean>(false);
-  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (window.location.search.includes('authenticated=true')) {
@@ -22,21 +21,7 @@ const FileUpload = () => {
   }, [isRedirected]);
 
   const checkAuthentication = async () => {
-    try {
-      const response = await fetch('https://fileuploaderbackend.onrender.com/api/checkAuth', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.authenticated) {
-          setToken(data.token); 
-        }
-      }
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-    }
+   console.log("all setup")
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,7 +36,8 @@ const FileUpload = () => {
       return;
     }
 
-    if (!token) {
+    const accessToken = await getCookie('access_token');
+    if (!accessToken) {
       alert('You are not authenticated. Please log in.');
       return;
     }
@@ -63,7 +49,7 @@ const FileUpload = () => {
       const response = await axios.post('https://fileuploaderbackend.onrender.com/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`, // Use the token directly in header
+          Authorization: `Bearer ${accessToken}`, 
         },
       });
       alert('File uploaded successfully');
@@ -72,6 +58,12 @@ const FileUpload = () => {
       console.error('Error uploading file:', error);
       alert('Error uploading file.');
     }
+  };
+
+  const getCookie = (name: string): string | undefined => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift();
   };
 
   return (
