@@ -23,7 +23,7 @@ const FileUpload = () => {
 
   const checkAuthentication = async () => {
     try {
-      const response = await fetch('https://fileuploaderbackend.onrender.com/checkAuth', {
+      const response = await fetch('https://fileuploaderbackend.onrender.com/api/checkAuth', {
         method: 'GET',
         credentials: 'include',
       });
